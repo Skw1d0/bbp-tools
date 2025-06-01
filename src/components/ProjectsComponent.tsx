@@ -39,18 +39,36 @@ interface ProjectListProps {
 
 type DrawerType = "add" | "import" | undefined;
 
-const proxy =
-  process.env.REACT_APP_PROXY === undefined ? "" : process.env.REACT_APP_PROXY;
+// const proxy =
+//   process.env.REACT_APP_PROXY === undefined ? "" : process.env.REACT_APP_PROXY;
 
-const checkAPN = async (bstRL100: string): Promise<boolean> => {
+// const checkAPN = async (bstRL100: string): Promise<boolean> => {
+//   try {
+//     const result = await fetch(`https://trassenfinder.de/apn/${bstRL100}`);
+//     return result.ok;
+//   } catch (e) {
+//     console.error(e);
+//     return false;
+//   }
+// };
+
+const openAPN = async (bstRL100: string) => {
   try {
-    const result = await fetch(
-      `${proxy}https://trassenfinder.de/apn/${bstRL100}`
-    );
-    return result.ok;
-  } catch (e) {
-    console.error(e);
-    return false;
+    const response = await await fetch(
+      `https://trassenfinder.de/apn/${bstRL100}`,
+      { method: "HEAD" }
+    ); // oder "GET", HEAD ist aber schneller
+    if (response.ok) {
+      // Status 200–299: Alles okay
+      window.open(`https://trassenfinder.de/apn/${bstRL100}`);
+    } else {
+      console.error(`Serverfehler: ${response.status}`);
+      alert("Diese Seite ist gerade nicht verfügbar.");
+    }
+  } catch (error) {
+    // Netzwerkfehler oder CORS-Fehler
+    console.error("Fehler beim Prüfen der URL:", error);
+    alert("Die Seite konnte nicht geprüft werden.");
   }
 };
 
@@ -62,24 +80,22 @@ nwr["railway"]["name"="${RL100Lang}"];
 out center;
 `;
   try {
-    const request = await fetch(
-      `${proxy}https://overpass-api.de/api/interpreter`,
-      {
-        method: "POST",
-        body: query,
-      }
-    );
+    const request = await fetch(`https://overpass-api.de/api/interpreter`, {
+      method: "POST",
+      body: query,
+    });
     const data = await request.json();
-    const { lat, lon } = data.elements[0];
 
-    if (lat && lon) {
-      window.open(
-        `https://www.openrailwaymap.org/?lat=${lat}&lon=${lon}&zoom=15`,
-        "_blank"
-      );
-    } else {
-      alert("Sry, es konnte keine Betriebsstelle gefunden werden.");
+    if (data.elements.length === 0) {
+      alert("Es konnte keine Betriebsstelle gefunden werden.");
+      return;
     }
+
+    const { lat, lon } = data.elements[0];
+    window.open(
+      `https://www.openrailwaymap.org/?lat=${lat}&lon=${lon}&zoom=15`,
+      "_blank"
+    );
   } catch (e) {
     console.error(e);
   }
@@ -118,6 +134,7 @@ export default function ProjectsComponent(props: ProjectListProps) {
                   <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
                     <Box
                       width={5}
+                      borderRadius={2}
                       sx={{
                         backgroundColor: project.completed
                           ? theme.palette.success.main
@@ -137,7 +154,11 @@ export default function ProjectsComponent(props: ProjectListProps) {
                           divider={<Divider orientation="vertical" flexItem />}
                         >
                           <Typography>
-                            <Link href="#">Anmeldung-{project.regID}</Link>
+                            <Link
+                              href={`https://bbpneo.deutschebahn.com/requests/edit/${project.regID}`}
+                            >
+                              Anmeldung-{project.regID}
+                            </Link>
                           </Typography>
                           {project.bbmnID && (
                             <Typography>
@@ -179,16 +200,10 @@ export default function ProjectsComponent(props: ProjectListProps) {
                                   <Tooltip title="APN Gleisplan laden">
                                     <IconButton
                                       onClick={async () => {
-                                        if (
-                                          !(await checkAPN(project.startBst))
-                                        ) {
-                                          return alert(
-                                            "Es steht kein APN Gleisplan zur verfügung."
-                                          );
-                                        }
-                                        window.open(
-                                          `https://trassenfinder.de/apn/${project.startBst}`
-                                        );
+                                        openAPN(project.startBst);
+                                        // window.open(
+                                        //   `https://trassenfinder.de/apn/${project.startBst}`
+                                        // );
                                       }}
                                     >
                                       <Map />
@@ -231,13 +246,6 @@ export default function ProjectsComponent(props: ProjectListProps) {
                                   <Tooltip title="APN Gleisplan laden">
                                     <IconButton
                                       onClick={async () => {
-                                        if (
-                                          !(await checkAPN(project.startBst))
-                                        ) {
-                                          return alert(
-                                            "Es steht kein APN Gleisplan zur verfügung."
-                                          );
-                                        }
                                         window.open(
                                           `https://trassenfinder.de/apn/${project.endBst}`
                                         );

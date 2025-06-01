@@ -5,24 +5,29 @@ import Tasks from "./pages/Tasks";
 import TasksOverview from "./pages/TasksOverview";
 import TaskDashboard from "./pages/TasksDashboard";
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      Component: Home,
+      ErrorBoundary: NotFound,
+    },
+    {
+      path: "/tasks",
+      Component: Tasks,
+      // ErrorBoundary: NotFound,
+      children: [
+        { index: true, Component: TasksOverview },
+        {
+          path: ":id",
+          Component: TaskDashboard,
+        },
+      ],
+    },
+  ],
   {
-    path: "/",
-    Component: Home,
-    ErrorBoundary: NotFound,
-  },
-  {
-    path: "/tasks",
-    Component: Tasks,
-    // ErrorBoundary: NotFound,
-    children: [
-      { index: true, Component: TasksOverview },
-      {
-        path: ":id",
-        Component: TaskDashboard,
-      },
-    ],
-  },
-]);
+    basename: "/my-bbr-tool",
+  }
+);
 
 export default router;

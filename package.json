@@ -1,8 +1,8 @@
 {
-  "name": "my-bbr-tool",
+  "name": "bbp-tools",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://railquery.de",
+  "homepage": "https://skw1d0.github.io/bbp-tools",
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
@@ -34,6 +34,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "deploy": "gh-pages -d build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
