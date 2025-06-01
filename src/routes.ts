@@ -26,7 +26,7 @@ const router = createBrowserRouter(
     },
   ],
   {
-    basename: "/my-bbr-tool",
+    basename: "/bbp-tools",
   }
 );
 
