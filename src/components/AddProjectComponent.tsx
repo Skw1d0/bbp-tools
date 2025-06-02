@@ -13,7 +13,7 @@ import {
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { bst } from "../tools/betriebsstellen";
 import { categories } from "../tools/categories";
 
@@ -21,7 +21,7 @@ import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import dayjs, { Dayjs } from "dayjs";
 import "dayjs/locale/de";
-import useTasksStore, { Task } from "../stores/useTasksStore";
+import useTasksStore, { Project, Task } from "../stores/useTasksStore";
 import generateUniqueId from "generate-unique-id";
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -31,13 +31,15 @@ dayjs().locale("de").format();
 interface AddProjectProps {
   task: Task;
   cancleFunction: () => void;
+  setTaskFunction: (task: Task) => void;
+  project?: Project;
 }
 
 export default function AddProjectComponent(props: AddProjectProps) {
-  const { addProject } = useTasksStore();
+  const { addProject, editProject } = useTasksStore();
 
   const [regID, setRegID] = useState<string>("");
-  const [bbmnID, setBbmnID] = useState("");
+  // const [bbmnID, setBbmnID] = useState("");
   const [title, setTitle] = useState("");
   const [state, setState] = useState("");
   const [category, setCategory] = useState("");
@@ -56,10 +58,10 @@ export default function AddProjectComponent(props: AddProjectProps) {
     if (endDate === null || startDate === null) return;
 
     const newId = generateUniqueId({ length: 8 });
-    addProject(props.task.id, {
+    const projectToSave: Project = {
       id: newId,
       regID: regID,
-      bbmnID: bbmnID,
+      // bbmnID: bbmnID,
       category: category,
       endBst: endBst,
       status: state,
@@ -69,14 +71,57 @@ export default function AddProjectComponent(props: AddProjectProps) {
       endDate: endDate.utc().toISOString(),
       endVzg: endVzG,
       startVzg: startVzG,
-      appointments: [],
       completed: false,
+      appointments: [],
+      comments: [],
       createdAt: dayjs.utc().toISOString(),
-    });
+    };
+
+    if (!props.project) {
+      props.setTaskFunction(addProject(props.task.id, projectToSave));
+    } else {
+      props.setTaskFunction(
+        editProject(props.task.id, props.project, projectToSave)
+      );
+    }
+
+    // addProject(props.task.id, {
+    //   id: newId,
+    //   regID: regID,
+    //   bbmnID: bbmnID,
+    //   category: category,
+    //   endBst: endBst,
+    //   status: state,
+    //   title: title,
+    //   startBst: startBst,
+    //   startDate: startDate.utc().toISOString(),
+    //   endDate: endDate.utc().toISOString(),
+    //   endVzg: endVzG,
+    //   startVzg: startVzG,
+    //   appointments: [],
+    //   completed: false,
+    //   createdAt: dayjs.utc().toISOString(),
+    // });
 
     // TODO: RETURN NEW TASKS TO PARENT
     props.cancleFunction();
   };
+
+  useEffect(() => {
+    if (!props.project) return;
+
+    setRegID(props.project.regID);
+    // setBbmnID(props.project.bbmnID);
+    setTitle(props.project.title);
+    setState(props.project.status);
+    setCategory(props.project.category);
+    setStartVzG(props.project.startVzg);
+    setEndVzG(props.project.endVzg);
+    setStartBst(props.project.startBst);
+    setEndBst(props.project.endBst);
+    setStartDate(dayjs(props.project.startDate).utc());
+    setEndDate(dayjs(props.project.endDate).utc());
+  }, [props.project]);
 
   return (
     <>
@@ -95,13 +140,13 @@ export default function AddProjectComponent(props: AddProjectProps) {
             onChange={(e) => setRegID(e.target.value)}
             onFocus={(e) => e.target.select()}
           />
-          <TextField
+          {/* <TextField
             variant="filled"
             label="BBMN-ID"
             value={bbmnID}
             onChange={(e) => setBbmnID(e.target.value.toUpperCase())}
             onFocus={(e) => e.target.select()}
-          />
+          /> */}
           <TextField
             variant="filled"
             label="Titel"
@@ -168,6 +213,9 @@ export default function AddProjectComponent(props: AddProjectProps) {
               fullWidth
               autoHighlight
               options={bst}
+              value={
+                bst.find((option) => option.RL100Code === startBst) || null
+              }
               filterOptions={(options, { inputValue }) =>
                 options
                   .filter((option) =>
@@ -200,6 +248,7 @@ export default function AddProjectComponent(props: AddProjectProps) {
               fullWidth
               autoHighlight
               options={bst}
+              value={bst.find((option) => option.RL100Code === endBst) || null}
               filterOptions={(options, { inputValue }) =>
                 options
                   .filter((option) =>

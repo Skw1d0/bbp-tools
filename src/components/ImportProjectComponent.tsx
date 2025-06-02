@@ -140,6 +140,7 @@ export default function ImportProjectComponent(props: AddProjectProps) {
         endDate: end,
         completed: false,
         appointments: [],
+        comments: [],
         createdAt: dayjs().utc().toLocaleString(),
       };
     });

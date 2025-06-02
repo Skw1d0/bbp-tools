@@ -1,4 +1,5 @@
 import {
+  Badge,
   Box,
   Button,
   Card,
@@ -16,7 +17,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import useTasksStore, { Task } from "../stores/useTasksStore";
+import useTasksStore, { Project, Task } from "../stores/useTasksStore";
 import { useState } from "react";
 import AddProjectComponent from "./AddProjectComponent";
 import ImportProjectComponent from "./ImportProjectComponent";
@@ -25,51 +26,23 @@ import { bst } from "../tools/betriebsstellen";
 import dayjs from "dayjs";
 import {
   CheckCircle,
+  Comment,
   Delete,
   Edit,
   LocationOn,
   Map,
   Unpublished,
 } from "@mui/icons-material";
-import { useNavigate } from "react-router";
+import CommentsComponent from "./CommentsComponent";
 
 interface ProjectListProps {
   task: Task;
 }
 
-type DrawerType = "add" | "import" | undefined;
-
-// const proxy =
-//   process.env.REACT_APP_PROXY === undefined ? "" : process.env.REACT_APP_PROXY;
-
-// const checkAPN = async (bstRL100: string): Promise<boolean> => {
-//   try {
-//     const result = await fetch(`https://trassenfinder.de/apn/${bstRL100}`);
-//     return result.ok;
-//   } catch (e) {
-//     console.error(e);
-//     return false;
-//   }
-// };
+type DrawerType = "add_edit" | "import" | "comments" | undefined;
 
 const openAPN = async (bstRL100: string) => {
-  try {
-    const response = await await fetch(
-      `https://trassenfinder.de/apn/${bstRL100}`,
-      { method: "HEAD" }
-    ); // oder "GET", HEAD ist aber schneller
-    if (response.ok) {
-      // Status 200–299: Alles okay
-      window.open(`https://trassenfinder.de/apn/${bstRL100}`);
-    } else {
-      console.error(`Serverfehler: ${response.status}`);
-      alert("Diese Seite ist gerade nicht verfügbar.");
-    }
-  } catch (error) {
-    // Netzwerkfehler oder CORS-Fehler
-    console.error("Fehler beim Prüfen der URL:", error);
-    alert("Die Seite konnte nicht geprüft werden.");
-  }
+  window.open(`https://trassenfinder.de/apn/${bstRL100}`, "_blank");
 };
 
 const openOpenrailwaymaps = async (RL100Code: string, RL100Lang: string) => {
@@ -103,17 +76,33 @@ out center;
 
 export default function ProjectsComponent(props: ProjectListProps) {
   const { deleteProject, marksProjectAsCompleted } = useTasksStore();
-  const navigate = useNavigate();
   const theme = useTheme();
 
   const [task, setTask] = useState<Task>(props.task);
   const [open, setOpen] = useState(false);
   const [drawerType, setDrawerType] = useState<DrawerType>(undefined);
+  const [editProject, setEditProject] = useState<Project | undefined>(
+    undefined
+  );
 
   const toggleDrawer = (newOpen: boolean, type?: DrawerType) => {
+    setEditProject(undefined);
     setDrawerType(type);
     setOpen(newOpen);
   };
+
+  const showEditDrawer = (open: boolean, project: Project) => {
+    setEditProject(project);
+    setDrawerType("add_edit");
+    setOpen(open);
+  };
+
+  const showCommentsDrawer = (open: boolean, project: Project) => {
+    setEditProject(project);
+    setDrawerType("comments");
+    setOpen(open);
+  };
+
   return (
     <>
       <Box flexGrow={1}>
@@ -160,11 +149,11 @@ export default function ProjectsComponent(props: ProjectListProps) {
                               Anmeldung-{project.regID}
                             </Link>
                           </Typography>
-                          {project.bbmnID && (
+                          {/* {project.bbmnID && (
                             <Typography>
                               <Link href="#">BBMN-{project.regID}</Link>
                             </Typography>
-                          )}
+                          )} */}
                         </Stack>
                         <Typography>{project.title}</Typography>
                         <Stack
@@ -201,9 +190,6 @@ export default function ProjectsComponent(props: ProjectListProps) {
                                     <IconButton
                                       onClick={async () => {
                                         openAPN(project.startBst);
-                                        // window.open(
-                                        //   `https://trassenfinder.de/apn/${project.startBst}`
-                                        // );
                                       }}
                                     >
                                       <Map />
@@ -246,9 +232,7 @@ export default function ProjectsComponent(props: ProjectListProps) {
                                   <Tooltip title="APN Gleisplan laden">
                                     <IconButton
                                       onClick={async () => {
-                                        window.open(
-                                          `https://trassenfinder.de/apn/${project.endBst}`
-                                        );
+                                        openAPN(project.endBst);
                                       }}
                                     >
                                       <Map />
@@ -299,7 +283,7 @@ export default function ProjectsComponent(props: ProjectListProps) {
                         </Stack>
                       </Stack>
 
-                      <Box width={120}>
+                      <Box width={180}>
                         <Stack direction="row" spacing={1}>
                           <Tooltip title="Als erledigt markieren">
                             <IconButton
@@ -321,9 +305,23 @@ export default function ProjectsComponent(props: ProjectListProps) {
                             </IconButton>
                           </Tooltip>
 
+                          <Tooltip title="Kommentare">
+                            <Badge
+                              badgeContent={project.comments.length}
+                              color="primary"
+                            >
+                              <IconButton
+                                onClick={() =>
+                                  showCommentsDrawer(true, project)
+                                }
+                              >
+                                <Comment />
+                              </IconButton>
+                            </Badge>
+                          </Tooltip>
                           <Tooltip title="Projekt bearbeiten">
                             <IconButton
-                              onClick={() => navigate(`/project/${project.id}`)}
+                              onClick={() => showEditDrawer(true, project)}
                             >
                               <Edit />
                             </IconButton>
@@ -350,9 +348,9 @@ export default function ProjectsComponent(props: ProjectListProps) {
               <Button
                 variant="outlined"
                 color="primary"
-                onClick={() => toggleDrawer(true, "add")}
+                onClick={() => toggleDrawer(true, "add_edit")}
               >
-                Projekt zuweisen
+                Neues Projekt
               </Button>
               <Button
                 variant="outlined"
@@ -367,16 +365,30 @@ export default function ProjectsComponent(props: ProjectListProps) {
       </Box>
       <Drawer open={open}>
         <Box sx={{ width: { xs: "100vw", sm: 600 } }} role="presentation">
-          {drawerType === "add" && (
+          {drawerType === "add_edit" && (
             <>
               <CardHeader
-                title="Projekt zuweisen"
-                subheader="Weise ein neues Projete der Aufgabe zu."
+                title={editProject ? "Projekt bearbeiten" : "Neues Projekt"}
               />
               <Box padding={2}>
                 <AddProjectComponent
                   cancleFunction={() => toggleDrawer(false)}
+                  setTaskFunction={setTask}
                   task={task}
+                  project={editProject}
+                />
+              </Box>
+            </>
+          )}
+          {drawerType === "comments" && (
+            <>
+              <CardHeader title="Kommentare" />
+              <Box padding={2}>
+                <CommentsComponent
+                  task={task}
+                  project={editProject}
+                  cancleFunction={() => toggleDrawer(false)}
+                  setTaskFunction={setTask}
                 />
               </Box>
             </>

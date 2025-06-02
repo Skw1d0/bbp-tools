@@ -66,7 +66,7 @@ export default function TasksComponent(props: TasksListProps) {
           {phases.length === 0 && (
             <Typography>Keine Aufgaben vorhanden.</Typography>
           )}
-          <List>
+          <List sx={{ maxHeight: "calc(100vh - 200px)", overflow: "auto" }}>
             {phases.map((phase, index) => (
               <ListItem key={phase.id} disablePadding>
                 <ListItemButton
