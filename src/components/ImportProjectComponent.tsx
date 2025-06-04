@@ -1,4 +1,12 @@
-import { Box, Button, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import useTasksStore, { Project, Task } from "../stores/useTasksStore";
@@ -139,7 +147,7 @@ export default function ImportProjectComponent(props: AddProjectProps) {
         startDate: start,
         endDate: end,
         completed: false,
-        appointments: [],
+        notifications: [],
         comments: [],
         createdAt: dayjs().utc().toLocaleString(),
       };
@@ -150,35 +158,48 @@ export default function ImportProjectComponent(props: AddProjectProps) {
   return (
     <>
       <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="de">
-        <div
-          {...getRootProps()}
-          style={{
-            border: "2px dashed gray",
-            borderRadius: 5,
-            padding: 20,
-            marginBottom: 30,
-          }}
-        >
-          <input {...getInputProps()} />
-          {isDragActive ? (
-            <Typography>Datei loslassen...</Typography>
-          ) : (
-            <Typography>Datei hierhin ziehen oder klicken</Typography>
-          )}
-        </div>
-
-        <Stack direction="column" spacing={1}>
-          <Box height={300} width="100%">
-            <DataGrid
-              columns={columns}
-              rows={rows}
-              checkboxSelection
-              onRowSelectionModelChange={(selection) => {
-                setSelectedIds(Array.from(selection.ids) as string[]);
-              }}
+        <Stack direction="column" spacing={1} padding={2}>
+          <Card variant="outlined">
+            <CardHeader
+              title="Importieren"
+              // subheader="Importiere hier eine CSV-Datei. Verwende dazu die Export-Funktion von BBPneo der Suche."
             />
-          </Box>
-          {/* <TableContainer sx={{ maxHeight: 300 }}>
+            <CardContent>
+              <div
+                {...getRootProps()}
+                style={{
+                  border: "2px dashed gray",
+                  borderRadius: 5,
+                  padding: 20,
+                }}
+              >
+                <input {...getInputProps()} />
+                {isDragActive ? (
+                  <Typography>Datei loslassen...</Typography>
+                ) : (
+                  <Typography>Datei hierhin ziehen oder klicken</Typography>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+          <Card variant="outlined">
+            <CardHeader
+              title="Projekte zum Importieren auswählen"
+              // subheader="Wähle hier die Projekte aus, die du importieren willst."
+            />
+            <CardContent>
+              <Stack direction="column" spacing={1}>
+                <Box height={300} width="100%">
+                  <DataGrid
+                    columns={columns}
+                    rows={rows}
+                    checkboxSelection
+                    onRowSelectionModelChange={(selection) => {
+                      setSelectedIds(Array.from(selection.ids) as string[]);
+                    }}
+                  />
+                </Box>
+                {/* <TableContainer sx={{ maxHeight: 300 }}>
             <Table sx={{ minWidth: 500 }}>
               <TableHead
                 sx={{
@@ -225,22 +246,26 @@ export default function ImportProjectComponent(props: AddProjectProps) {
             </Table>
           </TableContainer> */}
 
-          {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
+                {/* <pre>{JSON.stringify(data, null, 2)}</pre> */}
 
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => handleSave()}
-          >
-            Importieren
-          </Button>
-          <Button
-            variant="contained"
-            color="secondary"
-            onClick={props.cancleFunction}
-          >
-            Abbrechen
-          </Button>
+                <Button
+                  disabled={selectedIds.length === 0 ? true : false}
+                  variant="contained"
+                  color="primary"
+                  onClick={() => handleSave()}
+                >
+                  Importieren
+                </Button>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  onClick={props.cancleFunction}
+                >
+                  Abbrechen
+                </Button>
+              </Stack>
+            </CardContent>
+          </Card>
         </Stack>
       </LocalizationProvider>
     </>

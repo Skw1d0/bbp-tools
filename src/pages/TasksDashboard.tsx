@@ -4,7 +4,7 @@ import { CardHeader, IconButton, Stack, Typography } from "@mui/material";
 import { Delete, Edit } from "@mui/icons-material";
 import useTasksStore, { Task } from "../stores/useTasksStore";
 import AppbarComponent from "../components/AppbarComponent";
-import ProjectsComponent from "../components/ProjectsComponent";
+import ProjectListComponent from "../components/ProjectListComponent";
 // import AppointmentsComponent from "../components/AppointmentsComponent";
 
 export default function TaskDashboard() {
@@ -46,16 +46,16 @@ export default function TaskDashboard() {
           <Typography flexGrow={1} />
           {task && (
             <>
-              <IconButton color="inherit">
+              <IconButton>
                 <Edit />
               </IconButton>
-              <IconButton color="inherit" onClick={() => handleDelete()}>
+              <IconButton onClick={() => handleDelete()}>
                 <Delete />
               </IconButton>
             </>
           )}
         </Stack>
-        <ProjectsComponent task={task} />
+        <ProjectListComponent task={task} />
         {/* <Grid container direction={{ sm: "column", md: "row" }} spacing={1}>
           <Grid size={{ xs: 12, md: 8 }}>
             <ProjectsComponent task={task} />

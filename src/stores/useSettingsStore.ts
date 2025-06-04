@@ -18,7 +18,7 @@ const useSettingsStore = create<SettingsStoreProps>()(
         }
       },
     }),
-    { name: "mybbr-tool-settings-store", version: 1 }
+    { name: "bbp-tools-settings-store", version: 1 }
   )
 );
 

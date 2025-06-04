@@ -20,6 +20,7 @@ import { useState } from "react";
 import generateUniqueId from "generate-unique-id";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
+import { CheckCircle } from "@mui/icons-material";
 dayjs.extend(utc);
 
 export interface TasksListProps {
@@ -27,7 +28,7 @@ export interface TasksListProps {
 }
 
 export default function TasksComponent(props: TasksListProps) {
-  const { tasks: phases } = useTasksStore();
+  const { tasks } = useTasksStore();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
@@ -49,7 +50,7 @@ export default function TasksComponent(props: TasksListProps) {
       description: description.trim(),
       createdAt: dayjs.utc().toISOString(),
       projects: [],
-      appointments: [],
+      notifications: [],
     });
     navigate(`/tasks/${newId}`);
   };
@@ -63,20 +64,44 @@ export default function TasksComponent(props: TasksListProps) {
       <Card>
         {props.mode === "preview" && <CardHeader title="Aufgaben" />}
         <CardContent>
-          {phases.length === 0 && (
+          {tasks.length === 0 && (
             <Typography>Keine Aufgaben vorhanden.</Typography>
           )}
           <List sx={{ maxHeight: "calc(100vh - 200px)", overflow: "auto" }}>
-            {phases.map((phase, index) => (
-              <ListItem key={phase.id} disablePadding>
+            {tasks.map((task, index) => (
+              <ListItem key={task.id} disablePadding divider>
                 <ListItemButton
-                  divider={index < phases.length - 1 ? true : false}
-                  onClick={() => navigate(`/tasks/${phase.id}`)}
+                  divider={index < tasks.length - 1 ? true : false}
+                  onClick={() => navigate(`/tasks/${task.id}`)}
                 >
-                  <ListItemText
-                    primary={phase.title}
-                    secondary={phase.description}
-                  />
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    width={"100%"}
+                    alignItems="center"
+                  >
+                    <ListItemText
+                      primary={task.title}
+                      secondary={task.description}
+                    />
+                    <Stack direction="row" spacing={1}>
+                      <CheckCircle
+                        color={
+                          task.projects.filter((project) => project.completed)
+                            .length === task.projects.length
+                            ? "success"
+                            : undefined
+                        }
+                      />
+                      <Typography>
+                        {
+                          task.projects.filter((project) => project.completed)
+                            .length
+                        }
+                        /{task.projects.length}
+                      </Typography>
+                    </Stack>
+                  </Stack>
                 </ListItemButton>
               </ListItem>
             ))}

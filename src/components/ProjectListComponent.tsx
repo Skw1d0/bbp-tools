@@ -12,6 +12,10 @@ import {
   Link,
   List,
   ListItem,
+  ListItemIcon,
+  ListItemText,
+  Menu,
+  MenuItem,
   Stack,
   Tooltip,
   Typography,
@@ -31,15 +35,23 @@ import {
   Edit,
   LocationOn,
   Map,
+  MoreVert,
+  NotificationsActive,
   Unpublished,
 } from "@mui/icons-material";
 import CommentsComponent from "./CommentsComponent";
+import NotificationsComponent from "./NotificationsComponent";
 
 interface ProjectListProps {
   task: Task;
 }
 
-type DrawerType = "add_edit" | "import" | "comments" | undefined;
+type DrawerType =
+  | "add_edit"
+  | "import"
+  | "comments"
+  | "notifications"
+  | undefined;
 
 const openAPN = async (bstRL100: string) => {
   window.open(`https://trassenfinder.de/apn/${bstRL100}`, "_blank");
@@ -74,7 +86,7 @@ out center;
   }
 };
 
-export default function ProjectsComponent(props: ProjectListProps) {
+export default function ProjectListComponent(props: ProjectListProps) {
   const { deleteProject, marksProjectAsCompleted } = useTasksStore();
   const theme = useTheme();
 
@@ -84,6 +96,19 @@ export default function ProjectsComponent(props: ProjectListProps) {
   const [editProject, setEditProject] = useState<Project | undefined>(
     undefined
   );
+
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const openMenu = Boolean(anchorEl);
+  const handleOpenMenu = (
+    event: React.MouseEvent<HTMLElement>,
+    project: Project
+  ) => {
+    setEditProject(project);
+    setAnchorEl(event.currentTarget);
+  };
+  const handleCloseMenu = () => {
+    setAnchorEl(null);
+  };
 
   const toggleDrawer = (newOpen: boolean, type?: DrawerType) => {
     setEditProject(undefined);
@@ -100,6 +125,12 @@ export default function ProjectsComponent(props: ProjectListProps) {
   const showCommentsDrawer = (open: boolean, project: Project) => {
     setEditProject(project);
     setDrawerType("comments");
+    setOpen(open);
+  };
+
+  const showNotificationsDrawer = (open: boolean, project: Project) => {
+    setEditProject(project);
+    setDrawerType("notifications");
     setOpen(open);
   };
 
@@ -149,11 +180,6 @@ export default function ProjectsComponent(props: ProjectListProps) {
                               Anmeldung-{project.regID}
                             </Link>
                           </Typography>
-                          {/* {project.bbmnID && (
-                            <Typography>
-                              <Link href="#">BBMN-{project.regID}</Link>
-                            </Typography>
-                          )} */}
                         </Stack>
                         <Typography>{project.title}</Typography>
                         <Stack
@@ -304,11 +330,10 @@ export default function ProjectsComponent(props: ProjectListProps) {
                               )}
                             </IconButton>
                           </Tooltip>
-
                           <Tooltip title="Kommentare">
                             <Badge
                               badgeContent={project.comments.length}
-                              color="primary"
+                              color="info"
                             >
                               <IconButton
                                 onClick={() =>
@@ -319,22 +344,30 @@ export default function ProjectsComponent(props: ProjectListProps) {
                               </IconButton>
                             </Badge>
                           </Tooltip>
-                          <Tooltip title="Projekt bearbeiten">
-                            <IconButton
-                              onClick={() => showEditDrawer(true, project)}
-                            >
-                              <Edit />
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Projekt löschen">
-                            <IconButton
-                              onClick={() =>
-                                setTask(deleteProject(task.id, project.id))
+                          <Tooltip title="Benachrichtigungen">
+                            <Badge
+                              badgeContent={
+                                project.notifications.filter(
+                                  (notification) => !notification.completed
+                                ).length
                               }
+                              color="primary"
                             >
-                              <Delete />
-                            </IconButton>
+                              <IconButton
+                                onClick={() =>
+                                  showNotificationsDrawer(true, project)
+                                }
+                              >
+                                <NotificationsActive />
+                              </IconButton>
+                            </Badge>
                           </Tooltip>
+
+                          <IconButton
+                            onClick={(e) => handleOpenMenu(e, project)}
+                          >
+                            <MoreVert />
+                          </IconButton>
                         </Stack>
                       </Box>
                     </Stack>
@@ -363,50 +396,78 @@ export default function ProjectsComponent(props: ProjectListProps) {
           </CardActions>
         </Card>
       </Box>
+      <Menu
+        id="demo-positioned-menu"
+        aria-labelledby="demo-positioned-button"
+        anchorEl={anchorEl}
+        open={openMenu}
+        onClose={handleCloseMenu}
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
+      >
+        <MenuItem
+          onClick={() => {
+            if (!editProject) return;
+            handleCloseMenu();
+            showEditDrawer(true, editProject);
+          }}
+        >
+          <ListItemIcon>
+            <Edit />
+          </ListItemIcon>
+          <ListItemText>Bearbeiten</ListItemText>
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            if (!editProject) return;
+            handleCloseMenu();
+            setTask(deleteProject(props.task.id, editProject.id));
+          }}
+        >
+          <ListItemIcon>
+            <Delete />
+          </ListItemIcon>
+          <ListItemText>Löschen</ListItemText>
+        </MenuItem>
+      </Menu>
       <Drawer open={open}>
         <Box sx={{ width: { xs: "100vw", sm: 600 } }} role="presentation">
           {drawerType === "add_edit" && (
-            <>
-              <CardHeader
-                title={editProject ? "Projekt bearbeiten" : "Neues Projekt"}
-              />
-              <Box padding={2}>
-                <AddProjectComponent
-                  cancleFunction={() => toggleDrawer(false)}
-                  setTaskFunction={setTask}
-                  task={task}
-                  project={editProject}
-                />
-              </Box>
-            </>
+            <AddProjectComponent
+              cancleFunction={() => toggleDrawer(false)}
+              setTaskFunction={setTask}
+              task={task}
+              project={editProject}
+            />
           )}
           {drawerType === "comments" && (
-            <>
-              <CardHeader title="Kommentare" />
-              <Box padding={2}>
-                <CommentsComponent
-                  task={task}
-                  project={editProject}
-                  cancleFunction={() => toggleDrawer(false)}
-                  setTaskFunction={setTask}
-                />
-              </Box>
-            </>
+            <CommentsComponent
+              task={task}
+              project={editProject}
+              cancleFunction={() => toggleDrawer(false)}
+              setTaskFunction={setTask}
+            />
           )}
           {drawerType === "import" && (
-            <>
-              <CardHeader
-                title="Projekt importieren"
-                subheader="Importiere Projekte von BBPneo"
-              />
-              <Box padding={2}>
-                <ImportProjectComponent
-                  task={task}
-                  cancleFunction={() => toggleDrawer(false)}
-                  setTaskFunction={setTask}
-                />
-              </Box>
-            </>
+            <ImportProjectComponent
+              task={task}
+              cancleFunction={() => toggleDrawer(false)}
+              setTaskFunction={setTask}
+            />
+          )}
+          {drawerType === "notifications" && (
+            <NotificationsComponent
+              task={task}
+              project={editProject}
+              cancleFunction={() => toggleDrawer(false)}
+              setTaskFunction={setTask}
+            />
           )}
         </Box>
       </Drawer>

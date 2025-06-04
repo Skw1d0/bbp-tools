@@ -13,19 +13,19 @@ import {
 } from "@mui/material";
 import { Task } from "../stores/useTasksStore";
 
-interface AppointmentProps {
+interface NotificationProps {
   mode: "preview" | "normal";
   task?: Task;
 }
 
-export default function AppointmentsComponent(props: AppointmentProps) {
+export default function NotificationListComponent(props: NotificationProps) {
   if (props.mode === "preview") {
     return (
-      // TODO: GET ALL APPOINTMENTS FROM PROJECTS AN SHOW HERE
+      // TODO: GET ALL NOTIFICATIONS FROM PROJECTS AN SHOW HERE
       <Card>
-        <CardHeader title="Erinnerungen" />
+        <CardHeader title="Benachtrichtigungen" />
         <CardContent>
-          <p>Keine Erinnerungen gefunden.</p>
+          <p>Keine Benachrichtigungen gefunden.</p>
         </CardContent>
       </Card>
     );
@@ -37,20 +37,20 @@ export default function AppointmentsComponent(props: AppointmentProps) {
         <CardHeader title="Erinnerungen" />
         <CardContent>
           <List>
-            {props.task?.appointments.length === 0 && (
+            {props.task?.notifications.length === 0 && (
               <div>Keine Erinnerungen in dieser Phase vorhanden.</div>
             )}
-            {props.task?.appointments.map((appointment) => (
-              <ListItem key={appointment.id} disablePadding>
+            {props.task?.notifications.map((notification) => (
+              <ListItem key={notification.id} disablePadding>
                 <ListItemButton
                   divider={true}
                   onClick={() =>
-                    console.log(`Navigating to project ${appointment.taskID}`)
+                    console.log(`Navigating to project ${notification.id}`)
                   }
                 >
                   <ListItemText
-                    primary={appointment.title}
-                    secondary={`${appointment.description}`}
+                    primary={notification.title}
+                    secondary={`${notification.text}`}
                   />
                 </ListItemButton>
               </ListItem>

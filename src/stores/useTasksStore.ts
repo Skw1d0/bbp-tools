@@ -1,12 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export interface Appointment {
+export interface Notification {
   id: string;
   title: string;
-  description: string;
+  text: string;
   date: string;
-  taskID: string;
+  completed: boolean;
 }
 
 export interface Comment {
@@ -18,7 +18,6 @@ export interface Comment {
 export interface Project {
   id: string;
   regID: string;
-  // bbmnID: string;
   status: string;
   category: string;
   title: string;
@@ -29,7 +28,7 @@ export interface Project {
   startDate: string;
   endDate: string;
   completed: boolean;
-  appointments: Appointment[];
+  notifications: Notification[];
   comments: Comment[];
   createdAt: string;
 }
@@ -40,7 +39,7 @@ export interface Task {
   description: string;
   createdAt: string;
   projects: Project[];
-  appointments: Appointment[];
+  notifications: Notification[];
 }
 
 export interface TasksStoreState {
@@ -65,6 +64,22 @@ export interface TasksStateActions {
   ) => Task;
   addComment: (taskID: string, projectID: string, newComment: Comment) => Task;
   deleteComment: (taskID: string, projectID: string, commentID: string) => Task;
+  addNotification: (
+    taskID: string,
+    projectID: string,
+    newNotification: Notification
+  ) => Task;
+  markNotificationAsCompleted: (
+    taskID: string,
+    projectID: string,
+    appointmentID: string,
+    value: boolean
+  ) => Task;
+  deleteNotification: (
+    taskID: string,
+    projectID: string,
+    appointmentID: string
+  ) => Task;
 }
 
 const initialPhases: TasksStoreState = {
@@ -205,22 +220,92 @@ const useTasksStore = create<TasksStoreState & TasksStateActions>()(
         set({ tasks: newTasks });
         return newTasks.filter((task) => task.id === taskID)[0];
       },
+      addNotification: (
+        taskID: string,
+        projectID: string,
+        newNotification: Notification
+      ): Task => {
+        const newTasks = get().tasks.map((task) => {
+          if (task.id !== taskID) return task;
+          return {
+            ...task,
+            projects: task.projects.map((project) => {
+              if (project.id !== projectID) return project;
+              return {
+                ...project,
+                notifications: [...project.notifications, newNotification],
+              };
+            }),
+          };
+        });
+        set({ tasks: newTasks });
+        return newTasks.filter((task) => task.id === taskID)[0];
+      },
+      markNotificationAsCompleted: (
+        taskID: string,
+        projectID: string,
+        notificationID: string,
+        value: boolean
+      ): Task => {
+        const newTasks = get().tasks.map((task) => {
+          if (task.id !== taskID) return task;
+          return {
+            ...task,
+            projects: task.projects.map((project) => {
+              if (project.id !== projectID) return project;
+              return {
+                ...project,
+                notifications: project.notifications.map((appointment) =>
+                  appointment.id === notificationID
+                    ? { ...appointment, completed: value }
+                    : appointment
+                ),
+              };
+            }),
+          };
+        });
+        set({ tasks: newTasks });
+        return newTasks.filter((task) => task.id === taskID)[0];
+      },
+      deleteNotification: (
+        taskID: string,
+        projectID: string,
+        notificationID: string
+      ): Task => {
+        const newTasks = get().tasks.map((task) => {
+          if (task.id !== taskID) return task;
+          return {
+            ...task,
+            projects: task.projects.map((project) => {
+              if (project.id !== projectID) return project;
+              return {
+                ...project,
+                notifications: project.notifications.filter(
+                  (appointment) => appointment.id !== notificationID
+                ),
+              };
+            }),
+          };
+        });
+        set({ tasks: newTasks });
+        return newTasks.filter((task) => task.id === taskID)[0];
+      },
     }),
     {
-      name: "mybbr-tool-tasks-store",
-      version: 2,
+      name: "bbp-tools-tasks-store",
+      version: 1,
       migrate: (persistedState: any, version: number) => {
-        // Füge comments: [] zu jedem Project hinzu, falls nicht vorhanden
-        if (persistedState?.tasks) {
-          persistedState.tasks = persistedState.tasks.map((task: any) => ({
-            ...task,
-            projects: task.projects.map((project: any) => ({
-              ...project,
-              comments: project.comments ?? [],
-            })),
-          }));
-        }
-        return persistedState;
+        // // Füge comments: [] zu jedem Project hinzu, falls nicht vorhanden
+        // if (persistedState?.tasks) {
+        //   persistedState.tasks = persistedState.tasks.map((task: any) => ({
+        //     ...task,
+        //     projects: task.projects.map((project: any) => ({
+        //       ...project,
+        //       comments: project.comments ?? [],
+        //     })),
+        //   }));
+        // }
+        // return persistedState;
       },
     }
   )

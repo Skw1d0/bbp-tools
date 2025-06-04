@@ -1,6 +1,9 @@
 import {
   Box,
   Button,
+  Card,
+  CardContent,
+  CardHeader,
   IconButton,
   List,
   ListItem,
@@ -10,10 +13,20 @@ import {
   Typography,
 } from "@mui/material";
 import useTasksStore, { Comment, Project, Task } from "../stores/useTasksStore";
-import dayjs from "dayjs";
 import { useState } from "react";
 import generateUniqueId from "generate-unique-id";
 import { Delete } from "@mui/icons-material";
+import { DateTimeField, LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import "dayjs/locale/de";
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.locale("de");
+dayjs().locale("de").format();
 
 interface CommentsProps {
   task: Task;
@@ -40,13 +53,12 @@ export default function CommentsComponent(props: CommentsProps) {
     });
     props.setTaskFunction(updatedTask);
 
-    // Neuen Kommentar-Stand setzen
     const updatedProject = updatedTask.projects.find(
       (p: Project) => p.id === props.project?.id
     );
     if (updatedProject) {
       setComments(updatedProject.comments);
-      setComment(""); // Optional: Eingabefeld leeren
+      setComment("");
     }
   };
 
@@ -59,66 +71,93 @@ export default function CommentsComponent(props: CommentsProps) {
     );
     props.setTaskFunction(updatedTask);
 
-    // Neuen Kommentar-Stand setzen
     const updatedProject = updatedTask.projects.find(
       (p: Project) => p.id === props.project?.id
     );
     if (updatedProject) {
       setComments(updatedProject.comments);
-      setComment(""); // Optional: Eingabefeld leeren
+      setComment("");
     }
   };
 
   return (
-    <Stack direction="column" spacing={1}>
-      <List sx={{ maxHeight: "calc(100vh-100px)", overflow: "auto" }}>
-        {comments.map((comment) => (
-          <ListItem key={comment.id} divider>
-            <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
-              <Stack direction="column" spacing={1} sx={{ width: "100%" }}>
-                <TextField
-                  fullWidth
-                  variant="outlined"
-                  multiline={true}
-                  value={comment.label}
-                  disabled
-                />
-                <Typography fontSize={10}>
-                  {dayjs(comment.date).utc().format("DD.MM.YYYY HH:mm")}
-                </Typography>
-              </Stack>
-              <Box>
-                <Tooltip title="Kommentar löschen">
-                  <IconButton onClick={() => handleDeleteComment(comment.id)}>
-                    <Delete />
-                  </IconButton>
-                </Tooltip>
-              </Box>
+    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale="de">
+      <Stack direction="column" spacing={1} padding={2}>
+        <Card variant="outlined">
+          <CardHeader title="Kommentare" />
+          <CardContent>
+            <List sx={{ maxHeight: "calc(100vh-100px)", overflow: "auto" }}>
+              {comments.length === 0 && (
+                <Typography>Keine Kommentare vorhanden.</Typography>
+              )}
+              {comments.map((comment) => (
+                <ListItem key={comment.id}>
+                  <Stack direction="row" spacing={1} sx={{ width: "100%" }}>
+                    <Stack
+                      direction="column"
+                      spacing={1}
+                      sx={{ width: "100%" }}
+                    >
+                      <TextField
+                        size="small"
+                        fullWidth
+                        variant="outlined"
+                        multiline
+                        rows={4}
+                        value={comment.label}
+                        disabled
+                      />
+                      <DateTimeField
+                        size="small"
+                        value={dayjs(comment.date)}
+                        disabled
+                      />
+                    </Stack>
+                    <Box>
+                      <Tooltip title="Kommentar löschen">
+                        <IconButton
+                          onClick={() => handleDeleteComment(comment.id)}
+                        >
+                          <Delete />
+                        </IconButton>
+                      </Tooltip>
+                    </Box>
+                  </Stack>
+                </ListItem>
+              ))}
+            </List>
+          </CardContent>
+        </Card>
+
+        <Card variant="outlined">
+          <CardHeader title="Neuen Kommentar erstellen" />
+          <CardContent>
+            <Stack direction="column" spacing={1}>
+              <TextField
+                multiline
+                rows={4}
+                label="Kommentar"
+                onChange={(e) => setComment(e.target.value)}
+                value={comment}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleAddComment()}
+              >
+                Speichern
+              </Button>
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={props.cancleFunction}
+              >
+                Abbrechen
+              </Button>
             </Stack>
-          </ListItem>
-        ))}
-      </List>
-      <TextField
-        variant="filled"
-        multiline={true}
-        label="Kommentar"
-        onChange={(e) => setComment(e.target.value)}
-        value={comment}
-      />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => handleAddComment()}
-      >
-        Speichern
-      </Button>
-      <Button
-        variant="contained"
-        color="secondary"
-        onClick={props.cancleFunction}
-      >
-        Abbrechen
-      </Button>
-    </Stack>
+          </CardContent>
+        </Card>
+      </Stack>
+    </LocalizationProvider>
   );
 }
