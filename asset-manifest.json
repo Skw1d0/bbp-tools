@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/bbp-tools/static/css/main.86fece09.css",
-    "main.js": "/bbp-tools/static/js/main.08d87c79.js",
+    "main.js": "/bbp-tools/static/js/main.0b658e36.js",
     "static/media/roboto-latin-700-normal.woff2": "/bbp-tools/static/media/roboto-latin-700-normal.c4d6cab43bec89049809.woff2",
     "static/media/roboto-latin-500-normal.woff2": "/bbp-tools/static/media/roboto-latin-500-normal.599f66a60bdf974e578e.woff2",
     "static/media/roboto-latin-300-normal.woff2": "/bbp-tools/static/media/roboto-latin-300-normal.db56943a88e4852343ae.woff2",
@@ -76,10 +76,10 @@
     "static/media/roboto-greek-ext-300-normal.woff": "/bbp-tools/static/media/roboto-greek-ext-300-normal.60729cafbded24073dfb.woff",
     "index.html": "/bbp-tools/index.html",
     "main.86fece09.css.map": "/bbp-tools/static/css/main.86fece09.css.map",
-    "main.08d87c79.js.map": "/bbp-tools/static/js/main.08d87c79.js.map"
+    "main.0b658e36.js.map": "/bbp-tools/static/js/main.0b658e36.js.map"
   },
   "entrypoints": [
     "static/css/main.86fece09.css",
-    "static/js/main.08d87c79.js"
+    "static/js/main.0b658e36.js"
   ]
 }
