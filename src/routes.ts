@@ -1,21 +1,20 @@
-import { createBrowserRouter } from "react-router";
-import Home from "./pages/Home";
+import { createBrowserRouter, redirect } from "react-router";
 import NotFound from "./pages/NotFound";
 import Tasks from "./pages/Tasks";
 import TasksOverview from "./pages/TasksOverview";
 import TaskDashboard from "./pages/TasksDashboard";
-
+import Notifications from "./pages/Notifications";
 const router = createBrowserRouter(
   [
     {
       path: "/",
-      Component: Home,
+      loader: () => redirect("/tasks"),
       ErrorBoundary: NotFound,
     },
     {
       path: "/tasks",
       Component: Tasks,
-      // ErrorBoundary: NotFound,
+      ErrorBoundary: NotFound,
       children: [
         { index: true, Component: TasksOverview },
         {
@@ -23,6 +22,11 @@ const router = createBrowserRouter(
           Component: TaskDashboard,
         },
       ],
+    },
+    {
+      path: "/notifications",
+      Component: Notifications,
+      ErrorBoundary: NotFound,
     },
   ],
   {

@@ -292,6 +292,9 @@ export default function AddProjectComponent(props: AddProjectProps) {
                   />
                 </Stack>
                 <Button
+                  disabled={
+                    !startDate || !endDate || !regID || !title ? true : false
+                  }
                   variant="contained"
                   color="primary"
                   onClick={() => handleSave()}

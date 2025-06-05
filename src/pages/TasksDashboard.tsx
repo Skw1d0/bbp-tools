@@ -11,7 +11,6 @@ export default function TaskDashboard() {
   const { deleteTask } = useTasksStore();
   const navigate = useNavigate();
 
-  const appbarLinks = [{ label: "Aufgaben", path: "/tasks" }];
   const params = useParams();
   const { getTask } = useTasksStore();
   const [task, setTask] = useState<Task | undefined>(undefined);
@@ -39,7 +38,7 @@ export default function TaskDashboard() {
 
   return (
     <div>
-      <AppbarComponent links={appbarLinks} />
+      <AppbarComponent />
       <Stack direction="column" spacing={1} margin={1}>
         <Stack direction="row" spacing={1} alignItems="center">
           <CardHeader title={task?.title} subheader={task?.description} />

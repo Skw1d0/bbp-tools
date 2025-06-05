@@ -1,7 +1,15 @@
 import { DarkMode, Home, LightMode } from "@mui/icons-material";
-import { AppBar, Box, Button, IconButton, Stack, Toolbar } from "@mui/material";
+import {
+  AppBar,
+  Box,
+  Button,
+  IconButton,
+  Stack,
+  Toolbar,
+  useTheme,
+} from "@mui/material";
 import useSettingsStore from "../stores/useSettingsStore";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 export interface AppbarLink {
   label: string;
@@ -9,12 +17,19 @@ export interface AppbarLink {
 }
 
 export interface AppbarProps {
-  links?: AppbarLink[];
+  // links?: AppbarLink[];
 }
+
+const links: AppbarLink[] = [
+  { label: "Aufgaben", path: "/tasks" },
+  { label: "Benachrichtigungen", path: "/notifications" },
+];
 
 export default function AppbarComponent(props: AppbarProps) {
   const { theme, toggleTheme } = useSettingsStore();
   const navigate = useNavigate();
+  const location = useLocation();
+  const themeMUI = useTheme();
 
   return (
     <Box sx={{ flexGrow: 1 }}>
@@ -24,16 +39,24 @@ export default function AppbarComponent(props: AppbarProps) {
             <IconButton color="inherit" onClick={() => navigate("/")}>
               <Home />
             </IconButton>
-            {props.links &&
-              props.links.map((link, index) => (
-                <Button
-                  key={index}
-                  color="inherit"
-                  onClick={() => navigate(link.path)}
-                >
-                  {link.label}
-                </Button>
-              ))}
+            {links.map((link, index) => (
+              <Button
+                key={index}
+                color="inherit"
+                onClick={() => navigate(link.path)}
+                sx={{
+                  height: 64,
+                  borderRadius: 0,
+                  px: 2,
+                  backgroundColor:
+                    "/" + location.pathname.split("/")[1] === link.path
+                      ? themeMUI.palette.primary.main
+                      : null,
+                }}
+              >
+                {link.label}
+              </Button>
+            ))}
           </Stack>
           <IconButton color="inherit" onClick={() => toggleTheme()}>
             {theme === "light" ? <LightMode /> : <DarkMode />}

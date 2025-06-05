@@ -1,69 +1,74 @@
 import {
   Box,
-  Button,
   Card,
-  CardActions,
   CardContent,
   CardHeader,
   List,
-  ListItem,
   ListItemButton,
   ListItemText,
   Stack,
 } from "@mui/material";
-import { Task } from "../stores/useTasksStore";
+import useTasksStore, { Project, Task } from "../stores/useTasksStore";
+import { useState } from "react";
+import dayjs from "dayjs";
+import { useNavigate } from "react-router";
 
 interface NotificationProps {
-  mode: "preview" | "normal";
+  // mode: "preview" | "normal";
   task?: Task;
 }
 
 export default function NotificationListComponent(props: NotificationProps) {
-  if (props.mode === "preview") {
-    return (
-      // TODO: GET ALL NOTIFICATIONS FROM PROJECTS AN SHOW HERE
-      <Card>
-        <CardHeader title="Benachtrichtigungen" />
-        <CardContent>
-          <p>Keine Benachrichtigungen gefunden.</p>
-        </CardContent>
-      </Card>
-    );
-  }
+  const { getAllTasks } = useTasksStore();
+  const navigate = useNavigate();
+
+  // eslint-disable-next-line
+  const [projects, setProjects] = useState<Project[]>(
+    getAllTasks().flatMap((task) => [...task.projects])
+  );
+
+  // if (props.mode === "preview") {
+  //   return (
+  //     // TODO: GET ALL NOTIFICATIONS FROM PROJECTS AN SHOW HERE
+  //     <Card>
+  //       <CardHeader title="Erinnerungen" />
+  //       <CardContent>
+  //         <p>Keine Erinnerung gefunden.</p>
+  //       </CardContent>
+  //     </Card>
+  //   );
+  // }
 
   return (
     <Box flexGrow={1}>
       <Card>
-        <CardHeader title="Erinnerungen" />
         <CardContent>
           <List>
-            {props.task?.notifications.length === 0 && (
-              <div>Keine Erinnerungen in dieser Phase vorhanden.</div>
-            )}
-            {props.task?.notifications.map((notification) => (
-              <ListItem key={notification.id} disablePadding>
-                <ListItemButton
-                  divider={true}
-                  onClick={() =>
-                    console.log(`Navigating to project ${notification.id}`)
-                  }
-                >
-                  <ListItemText
-                    primary={notification.title}
-                    secondary={`${notification.text}`}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
+            {projects
+              .filter((project) => project.notifications.length > 0)
+              .flatMap((project) =>
+                project.notifications.map((notification) => (
+                  <ListItemButton
+                    key={notification.id}
+                    onClick={() => navigate(`/project/${project.id}`)}
+                  >
+                    <Stack direction="row" spacing={1} width="100%">
+                      <ListItemText
+                        primary={project.title}
+                        secondary={`Anmeldung-${project.regID}`}
+                      />
+                      <ListItemText
+                        primary={notification.title}
+                        secondary={dayjs(notification.date).format(
+                          "DD.MM.YYYY HH:mm"
+                        )}
+                      />
+                    </Stack>
+                  </ListItemButton>
+                ))
+              )}
           </List>
         </CardContent>
-        <CardActions>
-          <Stack direction="row" spacing={1}>
-            <Button variant="outlined" color="primary">
-              Neue Erinnerung erstellen
-            </Button>
-          </Stack>
-        </CardActions>
       </Card>
     </Box>
   );

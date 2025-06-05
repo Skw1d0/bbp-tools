@@ -49,6 +49,7 @@ export interface TasksStoreState {
 export interface TasksStateActions {
   addTask: (task: Task) => void;
   getTask: (taskID: string) => Task | undefined;
+  getAllTasks: () => Task[];
   deleteTask: (taskID: string) => void;
   addProject: (taskID: string, project: Project) => Task;
   editProject: (
@@ -96,6 +97,9 @@ const useTasksStore = create<TasksStoreState & TasksStateActions>()(
       },
       getTask: (id: string) => {
         return get().tasks.find((task) => task.id === id);
+      },
+      getAllTasks: (): Task[] => {
+        return get().tasks;
       },
       deleteTask: (id: string) => {
         set({ tasks: [...get().tasks.filter((task) => task.id !== id)] });
